@@ -138,13 +138,17 @@ public class WebCode extends AsyncTask<String, Void, String> {
 			
 			Bitmap bitmap = null;
 			
-			if(bitmapOptions != null) {
-				
-				BitmapFactory.decodeByteArray(byteArrayCode, 0, byteArrayCode.length, bitmapOptions); 
-				
-			} else {
-				
-				bitmap = BitmapFactory.decodeByteArray(byteArrayCode, 0, byteArrayCode.length);
+			if(byteArrayCode != null) {
+
+				if(bitmapOptions != null) {
+					
+					BitmapFactory.decodeByteArray(byteArrayCode, 0, byteArrayCode.length, bitmapOptions); 
+					
+				} else {
+					
+					bitmap = BitmapFactory.decodeByteArray(byteArrayCode, 0, byteArrayCode.length);
+					
+				}
 				
 			}
 			 
