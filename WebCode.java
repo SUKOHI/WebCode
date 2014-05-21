@@ -34,7 +34,7 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 /**
- * ver 4.3 (21 May, 2014)
+ * ver 4.31 (21 May, 2014)
  * @author Sukohi Kuhoh
  */
 public class WebCode extends AsyncTask<String, Void, String> {
@@ -211,11 +211,7 @@ public class WebCode extends AsyncTask<String, Void, String> {
 				
 				HttpPost httpPost = new HttpPost(url);
 				
-				if(connectionMode == Connection_Mode.DEFAULT) {
-					
-					httpPost.setEntity(new UrlEncodedFormEntity(postParams, encoding));
-					
-				} else if(connectionMode == Connection_Mode.UPLOAD) {
+				if(connectionMode == Connection_Mode.UPLOAD) {
 					
 					int fileDataCount = fileData.dataCount;
 					MultipartEntityBuilder builder = MultipartEntityBuilder.create();    
@@ -244,6 +240,10 @@ public class WebCode extends AsyncTask<String, Void, String> {
 					
 					httpPost.setEntity(builder.build());
 					connectionMode = Connection_Mode.DEFAULT;
+					
+				} else {
+					
+					httpPost.setEntity(new UrlEncodedFormEntity(postParams, encoding));
 					
 				}
 				
