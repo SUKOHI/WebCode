@@ -10,6 +10,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
@@ -34,7 +36,7 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 /**
- * ver 4.31 (21 May, 2014)
+ * ver 4.32 (23 May, 2014)
  * @author Sukohi Kuhoh
  */
 public class WebCode extends AsyncTask<String, Void, String> {
@@ -213,28 +215,37 @@ public class WebCode extends AsyncTask<String, Void, String> {
 				
 				if(connectionMode == Connection_Mode.UPLOAD) {
 					
-					int fileDataCount = fileData.dataCount;
-					MultipartEntityBuilder builder = MultipartEntityBuilder.create();    
-				    builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);    
+					Charset charset = Charset.forName(encoding);
+					MultipartEntityBuilder builder = MultipartEntityBuilder.create();	
+					builder.setCharset(charset);
+					builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);	
 					
-				    for (int i = 0; i < postParams.size(); i++) {
+					for (int i = 0; i < postParams.size(); i++) {
 						
-				    	builder.addTextBody(postParams.get(i).getName(), postParams.get(i).getValue());
-				    	
+						builder.addTextBody(
+								
+								postParams.get(i).getName(), 
+								postParams.get(i).getValue(),
+								ContentType.create("text/plain", charset)
+								
+						);
+						
 					}
-				    
+					
+					int fileDataCount = fileData.dataCount;
+					
 					for (int j = 0; j < fileDataCount; j++) {
 						
-					    String filePath = fileData.filePathes.get(j);
-					    String name = fileData.names.get(j);
-					    File file = new File(filePath);
-					    
-					    if(file.exists()) {
+						String filePath = fileData.filePathes.get(j);
+						String name = fileData.names.get(j);
+						File file = new File(filePath);
+						
+						if(file.exists()) {
 
-						    FileBody fileBody = new FileBody(file);
-						    builder.addPart(name, fileBody);
-					    	
-					    }
+							FileBody fileBody = new FileBody(file);
+							builder.addPart(name, fileBody);
+							
+						}
 
 					}
 					
@@ -269,33 +280,33 @@ public class WebCode extends AsyncTask<String, Void, String> {
 					downloadContentLength = entityCode.getContentLength();
 					
 					File file = new File(savePath);
-		            BufferedInputStream inputStream = new BufferedInputStream(entityCode.getContent(), BUFFER_SIZE);
-		            BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file, false), BUFFER_SIZE);
-		            byte buffer[] = new byte[BUFFER_SIZE];
-		            int length = -1;
-		            
-		            while((length = inputStream.read(buffer)) != -1) {
-		            	
-		            	downloadedLength += length;
-		            	
-		                if(downloadContentLength > 0) {
-		                	
-		                	downloadedPercentage = (int) ((downloadedLength * 100) / downloadContentLength);
-		                    
-		                } else {
-		                	
-		                	downloadedPercentage = -1;
-		                	
-		                }
-		            	
-		                doProgressCallback(STATUS_PROGRESS);
-		            	outputStream.write(buffer, 0, length);
-		                
-		            }
-		            
-		            outputStream.flush();
-		            outputStream.close();
-		            inputStream.close();
+					BufferedInputStream inputStream = new BufferedInputStream(entityCode.getContent(), BUFFER_SIZE);
+					BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file, false), BUFFER_SIZE);
+					byte buffer[] = new byte[BUFFER_SIZE];
+					int length = -1;
+					
+					while((length = inputStream.read(buffer)) != -1) {
+						
+						downloadedLength += length;
+						
+						if(downloadContentLength > 0) {
+							
+							downloadedPercentage = (int) ((downloadedLength * 100) / downloadContentLength);
+							
+						} else {
+							
+							downloadedPercentage = -1;
+							
+						}
+						
+						doProgressCallback(STATUS_PROGRESS);
+						outputStream.write(buffer, 0, length);
+						
+					}
+					
+					outputStream.flush();
+					outputStream.close();
+					inputStream.close();
 					
 				}
 				
@@ -317,29 +328,29 @@ public class WebCode extends AsyncTask<String, Void, String> {
 		
 		doProgressCallback(STATUS_END);
 		
-    	if(connectionMode == Connection_Mode.DEFAULT) {
+		if(connectionMode == Connection_Mode.DEFAULT) {
 
-    		WebCodeResult webCodeResult = new WebCodeResult();
-    		webCodeResult.setResult(responseResult);
-    		webCodeResult.setCode(code);
-    		webCodeResult.setStatusCode(httpStatusCode);
-    		webCodeResult.setByteArrayCode(byteArrayCode);
-    		
-    		if(callback != null) {
-    			
-    			callback.getResult(webCodeResult);
-    			
-    		}
-    		
-    	}
+			WebCodeResult webCodeResult = new WebCodeResult();
+			webCodeResult.setResult(responseResult);
+			webCodeResult.setCode(code);
+			webCodeResult.setStatusCode(httpStatusCode);
+			webCodeResult.setByteArrayCode(byteArrayCode);
+			
+			if(callback != null) {
+				
+				callback.getResult(webCodeResult);
+				
+			}
+			
+		}
 
 	}
 
-    protected void onProgressUpdate(Integer... values) {
-    	
-        doProgressCallback(STATUS_PROGRESS);
-        
-    }
+	protected void onProgressUpdate(Integer... values) {
+		
+		doProgressCallback(STATUS_PROGRESS);
+		
+	}
 	
 	public static class WebCodeCallback {
 		
@@ -407,7 +418,7 @@ public class WebCode extends AsyncTask<String, Void, String> {
 			Bitmap bitmap = null;
 			
 			if(byteArrayCode != null) {
-    			
+				
 				bitmap = BitmapFactory.decodeByteArray(byteArrayCode, 0, byteArrayCode.length, options); 
 			
 			}
